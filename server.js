@@ -1,15 +1,25 @@
 // Simple JSONP Proxy for NodeJS
 // Josh Hundley - http://joshhundley.com - http://twitter.com/oJshua
+//
+// nisc (http://nkls.schmckr.de) hacked it into a Mendeley document search proxy for
+// http://stackoverflow.com/questions/8297528/citation-lookup-with-ajax-using-oai-pmh/8309307
 
-var sys = require("sys"), http = require("http"), url = require("url");
+var util = require("util"), http = require("http"), url = require("url");
+var MENDELEY_SEARCH = 'http://api.mendeley.com/oapi/documents/search/';
 var apiPort = parseInt(process.env.PORT) || 8001;
+var apiKey = process.env.APIKEY;
+
+if(!apiKey) {
+  console.error("Please provide an apiKey (env variable 'APIKEY') .. exiting.");
+  process.exit(1);
+}
 
 http.createServer(function(req, res) {
 
   var params = url.parse(req.url, true).query;
 
   var format = 'json';
-  var jsonp = 'jsonp';
+  var jsonp = 'callback';
   var response = '';
   var requestUrl;
 
@@ -17,10 +27,10 @@ http.createServer(function(req, res) {
     res.writeHead(200, {
       'Content-Type' : "text/plain"
     });
-    res.write("JSON-P PROXY\n\n");
+    res.write("JSON-P Mendeley PROXY\n\n");
     res.write("Usage:\n");
-    res.write("\turl: The url to access, (required).\n");
-    res.write("\tjsonp: The function name to use for the JSON response. Default is 'jsonp'.\n");
+    res.write("\tquery: The search query (required).\n");
+    res.write("\tjsonp: The function name to use for the JSON response. Default is 'callback'.\n");
     res.write("\tformat: The expected format of the response, if not JSON. Supports: 'text', 'xml', 'string'.\n");
     return res.end();
   }
@@ -55,42 +65,17 @@ http.createServer(function(req, res) {
     format = params.format;
   }
 
-  if (typeof params.jsonp != 'undefined' && params.jsonp != '') {
-    jsonp = (params.jsonp + '').replace(/[^a-zA-Z0-9._$]+/g, '');
+  if (typeof params.callback != 'undefined' && params.callback != '') {
+    jsonp = (params.callback + '').replace(/[^a-zA-Z0-9._$]+/g, '');
   }
 
-  if (!params.url) {
+  if (!params.query) {
     return writeUsage(res);
   }
 
-  var requestURL = url.parse(params.url);
-  if (typeof requestURL.host == 'undefined') {
-    return writeJSONP(-1, true);
-  }
-
-  if (requestURL.protocol != 'http:') {
-    return writeJSONP(requestURL.protocol);
-  }
-
-  var path = '';
-
-  if (requestURL.pathname) {
-    path += requestURL.pathname;
-  }
-
-  if (requestURL.search) {
-    path += requestURL.search;
-  }
-
-  if (path == '') {
-    path = '/';
-  }
-
-  var port = 80;
-
-  if (requestURL.port) {
-    port = requestURL.port;
-  }
+  var port = 80
+  var path = MENDELEY_SEARCH+params.query+"?consumer_key="+apiKey;
+  var requestURL = url.parse(path);
 
   var client = http.createClient(port, requestURL.hostname);
   var request = client.request("GET", path, {
@@ -119,4 +104,4 @@ http.createServer(function(req, res) {
 
 }).listen(apiPort);
 
-sys.puts('Server running at http://127.0.0.1:' + apiPort);
+util.puts('Server running at http://127.0.0.1:' + apiPort);
