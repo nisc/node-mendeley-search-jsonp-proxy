@@ -46,9 +46,19 @@
           if(data && data.documents && data.documents.length) {
             $('#results').empty();
             for(var i=0; i<data.documents.length; i++) {
-              $.tmpl("<b>${num}:</b> ${title}<br>", {
-                num: i,
-                title: data.documents[i].title
+              var doc = data.documents[i];
+              var authors = 'Unknown author';
+              if(doc.authors) {
+                authors = doc.authors[0].surname;
+              }
+              $.tmpl('<b>${num}:</b> ${authors} (${year}). '
+                   + '<a href="${link}"><em>${title}</em></a>. ${outlet}.<br>', {
+                num: i+1,
+                authors: authors,
+                year: doc.year || '1337',
+                link: doc.mendeley_url || '#',
+                title: doc.title || 'No title',
+                outlet: doc.publication_outlet || 'Unknown publisher',
               })
               .appendTo($('#results'));
             }
