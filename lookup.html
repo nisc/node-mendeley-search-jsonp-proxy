@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+  <meta charset='utf-8'>
+  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
+  <head>
+    <title>Citation Lookup</title>
+    <style>
+      body {
+        margin: 20px;
+      }
+
+      #results {
+        border-style: ridge;
+        border-width: 5px;
+        margin-top: 20px;
+        padding: 10px;
+        min-height: 100px;
+        max-width: 500px;
+      }
+    </style>
+  </head>
+  <body>
+    <form action='#' id='citatiunz'>
+      <label for='input'>Citation hookup:</label>
+      <input id='input' />
+      <input type='submit' value='Search citations!' />
+    </form>
+    <div id='results'></div>
+
+    <script src='http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js'></script>
+    <script src="http://ajax.microsoft.com/ajax/jquery.templates/beta1/jquery.tmpl.min.js"></script>
+
+    <script>
+      var PROXY = "http://localhost:8001" // set this to your proxy endpoint
+
+      $('#citatiunz').submit(function() {
+        $('#results').text('Searching ...');
+        $.ajax({
+          url: PROXY,
+          dataType: 'jsonp',
+          data: {
+            query: $('#input').val()
+          }
+        })
+        .success(function(data) {
+          if(data && data.documents && data.documents.length) {
+            $('#results').empty();
+            for(var i=0; i<data.documents.length; i++) {
+              $.tmpl("<b>${num}:</b> ${title}<br>", {
+                num: i,
+                title: data.documents[i].title
+              })
+              .appendTo($('#results'));
+            }
+          } else {
+            $('#results').text('No results!');
+          }
+        })
+        .error(function() {
+          alert('Failed to get response from proxy!');
+        });
+        return false;
+      });
+    </script>
+  </body>
+</html>
