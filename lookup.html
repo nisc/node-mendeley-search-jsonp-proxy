@@ -1,76 +1,54 @@
 <!DOCTYPE html>
 <html>
-  <meta charset='utf-8'>
-  <meta http-equiv='Content-Type' content='text/html; charset=utf-8'>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <head>
     <title>Citation Lookup</title>
     <style>
       body {
         margin: 20px;
+        max-width: 500px;
+      }
+
+      h1 {
+        font-size: 160%;
+      }
+
+      form>input:first-child {
+        width: 60%;
       }
 
       #results {
         border-style: ridge;
         border-width: 5px;
         margin-top: 20px;
-        padding: 10px;
         min-height: 100px;
-        max-width: 500px;
+        padding-right: 5pt;
       }
     </style>
   </head>
   <body>
-    <form action='#' id='citatiunz'>
-      <label for='input'>Citation lookup:</label>
-      <input id='input' />
-      <input type='submit' value='Search citations!' />
+    <h1>Mendeley Citation Lookup</h1>
+    <form data-bind="submit: lookup">
+      <input data-bind="value: query, valueUpdate: 'keyup'" placeholder="Citation search query (e.g., authors:Knuth)" />
+      <button type="submit" data-bind="enable: query">Go!</button>
+      <span id="status" data-bind="text: state, visible: state()"></span>
     </form>
-    <div id='results'></div>
 
-    <script src='http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js'></script>
-    <script src="http://ajax.microsoft.com/ajax/jquery.templates/beta1/jquery.tmpl.min.js"></script>
+    <div id="results" data-bind="template: {name: 'citationTemplate'}"></div>
 
-    <script>
-      var PROXY = "http://localhost:8001" // set this to your proxy endpoint
-
-      $('#citatiunz').submit(function() {
-        $('#results').text('Searching ...');
-        $.ajax({
-          url: PROXY,
-          dataType: 'jsonp',
-          data: {
-            query: $('#input').val()
-          }
-        })
-        .success(function(data) {
-          if(data && data.documents && data.documents.length) {
-            $('#results').empty();
-            for(var i=0; i<data.documents.length; i++) {
-              var doc = data.documents[i];
-              var authors = 'Unknown author';
-              if(doc.authors) {
-                authors = doc.authors[0].surname;
-              }
-              $.tmpl('<b>${num}:</b> ${authors} (${year}). '
-                   + '<a href="${link}"><em>${title}</em></a>. ${outlet}.<br>', {
-                num: i+1,
-                authors: authors,
-                year: doc.year || '1337',
-                link: doc.mendeley_url || '#',
-                title: doc.title || 'No title',
-                outlet: doc.publication_outlet || 'Unknown publisher',
-              })
-              .appendTo($('#results'));
-            }
-          } else {
-            $('#results').text('No results!');
-          }
-        })
-        .error(function() {
-          alert('Failed to get response from proxy!');
-        });
-        return false;
-      });
+    <script type="x-jquery-tmpl" id="citationTemplate">
+      <ol>
+        {{each citations()}}
+          <li>${authors[0].surname||"Unknown author"} (${year||"Unknown year"}).
+          <a href="${mendeley_url||'#'}"><em>${title||"Unknown title"}</em></a>.
+          ${publication_outlet||"Unknown publisher"}.</li>
+        {{/each}}
+      </ol>
     </script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js"></script>
+    <script src="http://ajax.microsoft.com/ajax/jquery.templates/beta1/jquery.tmpl.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/knockout/1.2.1/knockout-min.js"></script>
+    <script src="lookup.js"></script>
   </body>
 </html>
