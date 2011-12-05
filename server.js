@@ -30,7 +30,7 @@ http.createServer(function(req, res) {
     res.write("JSON-P Mendeley PROXY\n\n");
     res.write("Usage:\n");
     res.write("\tquery: The search query (required).\n");
-    res.write("\tjsonp: The function name to use for the JSON response. Default is 'callback'.\n");
+    res.write("\tcallback: The function name to use for the JSON response. Default is 'callback'.\n");
     res.write("\tformat: The expected format of the response, if not JSON. Supports: 'text', 'xml', 'string'.\n");
     return res.end();
   }
