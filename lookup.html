@@ -40,7 +40,7 @@
     <script type="x-jquery-tmpl" id="citationTemplate">
       <ol>
         {{each citations()}}
-          <li>${authors[0].surname||"Unknown author"} (${year||"Unknown year"}).
+          <li>{{if authors}}${authors[0].surname}{{else}}Unknown author{{/if}} (${year||"Unknown year"}).
           <a href="${mendeley_url||'#'}"><em>${title||"Unknown title"}</em></a>.
           ${publication_outlet||"Unknown publisher"}.</li>
         {{/each}}
